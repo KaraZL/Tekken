@@ -1,3 +1,10 @@
+using CharactersAPI.Data;
+using CharactersAPI.Models;
+using CharactersAPI.Policies;
+using CharactersAPI.Repository;
+using CharactersAPI.Services;
+using Microsoft.EntityFrameworkCore;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -6,6 +13,22 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+//Entity Framework
+builder.Services.AddDbContext<DatabaseContext>(options =>
+{
+    options.UseSqlServer(builder.Configuration["ConnectionStrings:Database"]);
+});
+
+//DI
+builder.Services.AddScoped<ISqlRepository<Character>, CharacterSqlRepository>();
+builder.Services.AddScoped<ICharacterService, CharacterService>();
+
+//Polly
+builder.Services.AddSingleton<ClientPolicy>();
+
+//Mapper
+builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
 var app = builder.Build();
 
@@ -21,5 +44,7 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 
 app.MapControllers();
+
+PrepDb.PrepPopulation(app);
 
 app.Run();
