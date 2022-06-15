@@ -1,0 +1,28 @@
+trigger:
+- terraform
+
+pool:
+  vmImage: ubuntu-latest
+
+stages:
+  - stage: Terraform
+    jobs:
+      - job: Installer
+        continueOnError: false
+        steps:
+          - task: TerraformInstaller@0
+            displayName: Install Terraform
+            inputs:
+              terraformVersion: 'latest'
+          
+          - task: TerraformCLI@0
+            inputs:
+              command: 'init'
+              workingDirectory: '$(System.DefaultWorkingDirectory)/*terraform/'
+              allowTelemetryCollection: false
+          
+          - task: TerraformCLI@0
+            inputs:
+              command: 'validate'
+              workingDirectory: '$(System.DefaultWorkingDirectory)/*terraform/'
+              allowTelemetryCollection: false
