@@ -9,12 +9,7 @@ trigger:
 pool:
   vmImage: ubuntu-latest
 
-stages:
-  - stage: Tests
-    jobs:
-      - job: UnitTests
-        continueOnError: false
-        steps:
+steps:
           - task: DotNetCoreCLI@2
             inputs:
               command: 'test'
