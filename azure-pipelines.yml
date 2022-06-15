@@ -16,13 +16,20 @@ stages:
               terraformVersion: 'latest'
           
           - task: TerraformCLI@0
+            displayName: Init Terraform
             inputs:
               command: 'init'
-              workingDirectory: '$(System.DefaultWorkingDirectory)/*terraform'
-              allowTelemetryCollection: false
-          
+              workingDirectory: '$(System.DefaultWorkingDirectory)/terraform/'
+              backendType: 'azurerm'
+              backendServiceArm: 'terraform-aks-azurerm'
+              backendAzureRmResourceGroupName: 'terraform-storage-rg'
+              backendAzureRmStorageAccountName: 'tekkenterraformstorage'
+              backendAzureRmContainerName: 'tfstatefiles'
+              backendAzureRmKey: 'terraform-base.tfstate'
+              allowTelemetryCollection: true
           - task: TerraformCLI@0
+            displayName: Validate Terraform
             inputs:
               command: 'validate'
-              workingDirectory: '$(System.DefaultWorkingDirectory)/*terraform'
-              allowTelemetryCollection: false
+              workingDirectory: '$(System.DefaultWorkingDirectory)/terraform/'
+              allowTelemetryCollection: true
