@@ -1,0 +1,28 @@
+version: '3.4'
+
+services:
+  mssql:
+    container_name: mssqldbserver
+    restart: always
+    ports:
+      - 1433:1433
+    environment:
+      SA_PASSWORD: "Password?!1"
+      ACCEPT_EULA: "Y"
+      MSSQL_PID: "Express"
+
+  charactersapi:
+    container_name: characters-api
+    restart: always
+    depends_on:
+      - mssql
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      #- ASPNETCORE_URLS=https://+:443;http://+:80
+      - ConnectionStrings:Database=Server=mssqldbserver;Database=Tekken;User Id=SA;Password=Password?!1;
+    ports:
+      - 5001:80
+      #- "443"
+    #volumes:
+      #- ${APPDATA}/Microsoft/UserSecrets:/root/.microsoft/usersecrets:ro
+      #- ${APPDATA}/ASP.NET/Https:/root/.aspnet/https:ro
