@@ -3,6 +3,7 @@ using CharactersAPI.Models;
 using CharactersAPI.Policies;
 using CharactersAPI.Repository;
 using CharactersAPI.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -30,6 +31,14 @@ builder.Services.AddSingleton<ClientPolicy>();
 //Mapper
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
+//Secure API
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.Audience = builder.Configuration["AzureAD:ResourceId"];
+        options.Authority = $"{builder.Configuration["AzureAD:InstanceId"]}{builder.Configuration["AzureAD:TenantId"]}";
+    });
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -40,6 +49,9 @@ if (app.Environment.IsDevelopment())
 }
 
 //app.UseHttpsRedirection();
+
+//Secure API
+app.UseAuthentication();
 
 app.UseAuthorization();
 
