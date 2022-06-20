@@ -1,5 +1,5 @@
 trigger:
-- terraform
+- secure
 
 pool:
   vmImage: ubuntu-latest
