@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text;
 using System.Threading.Tasks;
@@ -27,6 +28,9 @@ namespace CharactersAPI.Tests.Integration.CharactersController
         public GetAllCharacterControllerTests(CharactersApiFactory factory)
         {
             _client = factory.CreateClient();
+            var accessToken = factory.AccessToken().Result;
+            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("bearer", accessToken);
+
         }
 
         [Fact]

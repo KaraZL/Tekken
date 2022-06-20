@@ -22,14 +22,14 @@ namespace CharactersAPI.Data
 
             policy.MigrationRetryPolicy.Execute(() => context.Database.Migrate());
 
-            //if (!context.Character.Any())
-            //{
-            //    context.Character.Add(new Character
-            //    {
-            //        Name = "Zafina",
-            //        Description = "Assassin"
-            //    });
-            //}
+            if (!context.Character.Any())
+            {
+                context.Character.Add(new Character
+                {
+                    Name = "Zafina",
+                    Description = "Assassin"
+                });
+            }
 
             context.SaveChanges();
         }

@@ -1,0 +1,33 @@
+﻿@page "/characters"
+
+<PageTitle>Characters</PageTitle>
+
+<h3>Characters</h3>
+
+@if (characters is null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <table>
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Name</th>
+                <th>Description</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var character in characters)
+            {
+                <tr>
+                    <td>@character.Id</td>
+                    <td>@character.Name</td>
+                    <td>@character.Description</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
