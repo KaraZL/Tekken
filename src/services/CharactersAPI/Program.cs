@@ -1,4 +1,5 @@
 using CharactersAPI.Data;
+using CharactersAPI.Helpers;
 using CharactersAPI.Models;
 using CharactersAPI.Policies;
 using CharactersAPI.Repository;
@@ -7,6 +8,14 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
+
+//KeyVault
+builder.Configuration.AddAzureKeyVault(
+    $"https://{builder.Configuration["KeyVault:Vault"]}.vault.azure.net/",
+    builder.Configuration["KeyVault:ClientId"],
+    Certificate.GetCertificate(builder.Configuration["KeyVault:Thumbprint"]),
+    new PrefixKeyVaultSecretManager("CharactersAPI")
+    );
 
 // Add services to the container.
 

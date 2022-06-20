@@ -5,10 +5,19 @@ using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Identity.Web;
 using Microsoft.Net.Http.Headers;
 using TekkenApp.Data;
+using TekkenApp.Helpers;
 using TekkenApp.HttpHandlers;
 using TekkenApp.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+
+//KeyVault
+builder.Configuration.AddAzureKeyVault(
+    $"https://{builder.Configuration["KeyVault:Vault"]}.vault.azure.net/",
+    builder.Configuration["KeyVault:ClientId"],
+    Certificate.GetCertificate(builder.Configuration["KeyVault:Thumbprint"]),
+    new PrefixKeyVaultSecretManager("TekkenApp")
+    );
 
 // Add services to the container.
 builder.Services.AddRazorPages();
