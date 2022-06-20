@@ -52,8 +52,11 @@ stages:
               workingDirectory: '$(System.DefaultWorkingDirectory)/terraform/'
               allowTelemetryCollection: true
         
-          - task: TerraformCLI@0
-            inputs:
+      - job: Deploy
+        continueOnError: false
+        steps:
+         - task: TerraformCLI@0
+           inputs:
               command: 'apply'
               workingDirectory: '$(System.DefaultWorkingDirectory)/terraform/'
               environmentServiceName: 'terraform-aks-azurerm'
