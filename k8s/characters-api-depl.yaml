@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: charactersapi-deployment
+  labels:
+    app: charactersapi
+spec:
+  selector:
+    matchLabels:
+      app: charactersapi
+  template:
+    metadata:
+      labels:
+        app: charactersapi
+    spec:
+      containers:
+      - name: charactersapi
+        image: characters-api:latest
+        imagePullPolicy: IfNotPresent
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "200m"
+        ports:
+        - containerPort: 80
+        env:
+          - name: ConnectionStrings__Database
+            valueFrom:
+              secretKeyRef:
+                name: characters-mssql-secret
+                key: mssql-connection-string
+          - name: ASPNETCORE_ENVIRONMENT
+            value: Development
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: characters-api-loadbalancer
+spec:
+  type: LoadBalancer
+  selector:
+    app: charactersapi
+  ports:
+  - port: 8501
+    targetPort: 80
+    protocol: TCP
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: characters-api-clusterip
+spec:
+  type: ClusterIP
+  selector:
+    app: charactersapi
+  ports:
+  - port: 80
+    targetPort: 80
+    protocol: TCP
+
+
