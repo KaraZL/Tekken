@@ -88,7 +88,7 @@ stages:
   #               $(Build.BuildId)
   #               $(Build.SourceVersion)
 
-  - stage: Upload K8S Artifacts
+  - stage: K8SArtifacts
     displayName: K8s artifacts
     jobs:
       - job: Upload
