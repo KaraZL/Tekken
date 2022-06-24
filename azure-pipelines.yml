@@ -107,5 +107,9 @@ stages:
               targetPath: '$(Build.ArtifactStagingDirectory)'
               artifact: 'k8s-manifests'
               publishLocation: 'pipeline'
+              
+          - bash: echo Contents in System Working Dir; ls -R $(System.DefaultWorkingDirectory)
+          - bash: echo Contents in Artifact Staging; ls -R $(Build.ArtifactStagingDirectory)
+
 
 
