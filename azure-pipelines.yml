@@ -1,80 +1,111 @@
 trigger:
-- secure
+- kubernetes
 
 pool:
   vmImage: ubuntu-latest
 
 stages:
-  - stage: Test
-    jobs:
-      - job: UnitTests
-        continueOnError: false
-        steps:
-          - task: DotNetCoreCLI@2
-            inputs:
-              command: 'test'
-              projects: '*tests/*Unit/*.csproj'
+  # - stage: Test
+  #   jobs:
+  #     - job: UnitTests
+  #       continueOnError: false
+  #       steps:
+  #         - task: DotNetCoreCLI@2
+  #           inputs:
+  #             command: 'test'
+  #             projects: '*tests/*Unit/*.csproj'
 
-      - job: IntegrationTests
-        continueOnError: false
-        steps:
-          - task: DotNetCoreCLI@2
-            inputs:
-              command: 'test'
-              projects: '*tests/*Integration/*.csproj'
+  #     - job: IntegrationTests
+  #       continueOnError: false
+  #       steps:
+  #         - task: DotNetCoreCLI@2
+  #           inputs:
+  #             command: 'test'
+  #             projects: '*tests/*Integration/*.csproj'
 
-  - stage: Artifacts
+  # - stage: Terraform
+  #   jobs:
+  #     - job: ApplyTerraformManifests
+  #       continueOnError: true
+  #       steps:
+  #         - task: TerraformInstaller@0
+  #           displayName: Install Terraform
+  #           inputs:
+  #             terraformVersion: 'latest'
+          
+  #         - task: TerraformCLI@0
+  #           displayName: Init Terraform
+  #           inputs:
+  #             command: 'init'
+  #             workingDirectory: '$(System.DefaultWorkingDirectory)/terraform/'
+  #             backendType: 'azurerm'
+  #             backendServiceArm: 'terraform-aks-azurerm'
+  #             backendAzureRmResourceGroupName: 'terraform-storage-rg'
+  #             backendAzureRmStorageAccountName: 'tekkenterraformstorage'
+  #             backendAzureRmContainerName: 'tfstatefiles'
+  #             backendAzureRmKey: 'terraform.tfstate'
+  #             allowTelemetryCollection: true
+  #         - task: TerraformCLI@0
+  #           displayName: Validate Terraform
+  #           inputs:
+  #             command: 'validate'
+  #             workingDirectory: '$(System.DefaultWorkingDirectory)/terraform/'
+  #             allowTelemetryCollection: true
+
+  #         - task: TerraformCLI@0
+  #           inputs:
+  #             command: 'apply'
+  #             workingDirectory: '$(System.DefaultWorkingDirectory)/terraform/'
+  #             environmentServiceName: 'terraform-aks-azurerm'
+  #             runAzLogin: true
+  #             allowTelemetryCollection: true
+              
+          # - task: TerraformCLI@0
+          #   inputs:
+          #     command: 'destroy'
+          #     workingDirectory: '$(System.DefaultWorkingDirectory)/terraform/'
+          #     environmentServiceName: 'terraform-aks-azurerm'
+          #     runAzLogin: true
+          #     allowTelemetryCollection: true
+
+  # - stage: Push to ACR
+  #   displayName: Build Stage
+  #   jobs:
+  #     - job: BuildAndPush
+  #       displayName: Build and Push Job
+  #       pool:
+  #         vmImage: 'ubuntu-latest'
+  #       steps:
+  #         - task: Docker@2
+  #           displayName: Push To ACR
+  #           inputs:
+  #             containerRegistry: 'tekken-acr'
+  #             repository: 'tekkenacr.azurecr.io'
+  #             command: 'buildAndPush'
+  #             Dockerfile: 'src/services/CharactersAPI/Dockerfile'
+  #             buildContext: ''
+  #             tags: |
+  #               $(Build.BuildId)
+  #               $(Build.SourceVersion)
+
+  - stage: Upload K8S Artifacts
+    displayName: K8s artifacts
     jobs:
-      - job: UploadArtifacts
-        continueOnError: false
+      - job: Upload
         steps:
+          - bash: echo Contents in System Working Dir; ls -R $(System.DefaultWorkingDirectory)
+          - bash: echo Contents in Artifact Staging; ls -R $(Build.ArtifactStagingDirectory)
+          - task: CopyFiles@2
+            displayName: Copy k8s manifests to artifact staging area
+            inputs:
+              SourceFolder: '$(System.DefaultWorkingDirectory)/k8s/'
+              Contents: '**'
+              TargetFolder: '$(Build.ArtifactStagingDirectory)'
+              OverWrite: true
           - task: PublishPipelineArtifact@1
             inputs:
-              targetPath: '$(System.DefaultWorkingDirectory)/terraform/'
-              artifact: 'terraform-manifests-out'
+              targetPath: '$(Build.ArtifactStagingDirectory)'
+              artifact: 'k8s-manifests'
               publishLocation: 'pipeline'
 
-  - stage: Terraform
-    jobs:
-      - job: ApplyTerraformManifests
-        continueOnError: true
-        steps:
-          - task: TerraformInstaller@0
-            displayName: Install Terraform
-            inputs:
-              terraformVersion: 'latest'
-          
-          - task: TerraformCLI@0
-            displayName: Init Terraform
-            inputs:
-              command: 'init'
-              workingDirectory: '$(Pipeline.Workspace)/terraform-manifests-out'
-              backendType: 'azurerm'
-              backendServiceArm: 'terraform-aks-azurerm'
-              backendAzureRmResourceGroupName: 'terraform-storage-rg'
-              backendAzureRmStorageAccountName: 'tekkenterraformstorage'
-              backendAzureRmContainerName: 'tfstatefiles'
-              backendAzureRmKey: 'terraform.tfstate'
-              allowTelemetryCollection: true
-          - task: TerraformCLI@0
-            displayName: Validate Terraform
-            inputs:
-              command: 'validate'
-              workingDirectory: '$(Pipeline.Workspace)/terraform-manifests-out'
-              allowTelemetryCollection: true
 
-          - task: TerraformCLI@0
-            inputs:
-              command: 'apply'
-              workingDirectory: '$(Pipeline.Workspace)/terraform-manifests-out'
-              environmentServiceName: 'terraform-aks-azurerm'
-              runAzLogin: true
-              allowTelemetryCollection: true
-              
-          - task: TerraformCLI@0
-            inputs:
-              command: 'destroy'
-              workingDirectory: '$(Pipeline.Workspace)/terraform-manifests-out'
-              environmentServiceName: 'terraform-aks-azurerm'
-              runAzLogin: true
-              allowTelemetryCollection: true
