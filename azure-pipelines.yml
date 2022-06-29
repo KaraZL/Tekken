@@ -1,6 +1,13 @@
 trigger:
 - kubernetes
 
+variables:
+  # Container registry service connection established during pipeline creation
+  dockerRegistryServiceConnection: '545a7676-b6b2-4370-a270-0ba132beb479'
+  imageRepository: 'tekkenacr.azurecr.io/characters-api'
+  containerRegistry: 'tekkenacr.azurecr.io'
+  dockerfilePath: '$src/services/CharactersAPI/Dockerfile'
+
 pool:
   vmImage: ubuntu-latest
 
@@ -23,70 +30,93 @@ stages:
   #             command: 'test'
   #             projects: '*tests/*Integration/*.csproj'
 
-  # - stage: Terraform
-  #   jobs:
-  #     - job: ApplyTerraformManifests
-  #       continueOnError: true
-  #       steps:
-  #         - task: TerraformInstaller@0
-  #           displayName: Install Terraform
-  #           inputs:
-  #             terraformVersion: 'latest'
+  - stage: Terraform Validate
+    jobs:
+      - job: TerraformValidate
+        continueOnError: false
+        steps:
+          - task: PublishPipelineArtifact@1
+            displayName: Publish terraform manifests to artifacts
+            inputs:
+              targetPath: '$(Pipeline.Workspace)/terraform/'
+              artifact: 'terraform-manifests-out'
+              publishLocation: 'pipeline'
+          - task: TerraformInstaller@0
+            displayName: Install Terraform
+            inputs:
+              terraformVersion: 'latest'
           
-  #         - task: TerraformCLI@0
-  #           displayName: Init Terraform
-  #           inputs:
-  #             command: 'init'
-  #             workingDirectory: '$(System.DefaultWorkingDirectory)/terraform/'
-  #             backendType: 'azurerm'
-  #             backendServiceArm: 'terraform-aks-azurerm'
-  #             backendAzureRmResourceGroupName: 'terraform-storage-rg'
-  #             backendAzureRmStorageAccountName: 'tekkenterraformstorage'
-  #             backendAzureRmContainerName: 'tfstatefiles'
-  #             backendAzureRmKey: 'terraform.tfstate'
-  #             allowTelemetryCollection: true
-  #         - task: TerraformCLI@0
-  #           displayName: Validate Terraform
-  #           inputs:
-  #             command: 'validate'
-  #             workingDirectory: '$(System.DefaultWorkingDirectory)/terraform/'
-  #             allowTelemetryCollection: true
+          - task: TerraformCLI@0
+            displayName: Init Terraform
+            inputs:
+              command: 'init'
+              workingDirectory: '$(System.DefaultWorkingDirectory)/terraform/'
+              backendType: 'azurerm'
+              backendServiceArm: 'terraform-aks-azurerm'
+              backendAzureRmResourceGroupName: 'terraform-storage-rg'
+              backendAzureRmStorageAccountName: 'tekkenterraformstorage'
+              backendAzureRmContainerName: 'tfstatefiles'
+              backendAzureRmKey: 'terraform.tfstate'
+              allowTelemetryCollection: true
+          - task: TerraformCLI@0
+            displayName: Validate Terraform
+            inputs:
+              command: 'validate'
+              workingDirectory: '$(System.DefaultWorkingDirectory)/terraform/'
+              allowTelemetryCollection: true
 
-  #         - task: TerraformCLI@0
-  #           inputs:
-  #             command: 'apply'
-  #             workingDirectory: '$(System.DefaultWorkingDirectory)/terraform/'
-  #             environmentServiceName: 'terraform-aks-azurerm'
-  #             runAzLogin: true
-  #             allowTelemetryCollection: true
-              
-          # - task: TerraformCLI@0
-          #   inputs:
-          #     command: 'destroy'
-          #     workingDirectory: '$(System.DefaultWorkingDirectory)/terraform/'
-          #     environmentServiceName: 'terraform-aks-azurerm'
-          #     runAzLogin: true
-          #     allowTelemetryCollection: true
+  - stage: Create AKS Cluster and ACR
+    jobs:
+      - job: TerraformInit
+        steps:
+          - task: DownloadSecureFile@1
+            displayName: "SSH public key"
+            name: sshkey
+            inputs:
+              secureFile: 'azure-aks.pub'
+          - task: TerraformCLI@0
+            inputs:
+              command: 'init'
+              workingDirectory: '$(Pipeline.Workspace)/terraform-manifests-out'
+              backendType: 'azurerm'
+              backendServiceArm: 'terraform-aks-azurerm'
+              backendAzureRmResourceGroupName: 'terraform-storage-rg'
+              backendAzureRmStorageAccountName: 'tekkenterraformstorage'
+              backendAzureRmContainerName: 'tfstatefiles'
+              backendAzureRmKey: 'terraform-dev.tfstate'
+              allowTelemetryCollection: false
+          
+          - task: TerraformCLI@0
+            inputs:
+              command: 'plan'
+              runAzLogin: true
+              commandOptions: '-var ssh_public_key=$(sshkey.secureFilePath) -out $(Pipeline.Workspace)/terraform-manifests-out/dev-$(Build.BuildId).out'
+              allowTelemetryCollection: false
+          
+          - task: TerraformCLI@0
+            inputs:
+              command: 'apply'
+              commandOptions: '$(Pipeline.Workspace)/terraform-manifests-out/dev-$(Build.BuildId).out'
+              allowTelemetryCollection: true
 
-  # - stage: Push to ACR
-  #   displayName: Build Stage
-  #   jobs:
-  #     - job: BuildAndPush
-  #       displayName: Build and Push Job
-  #       pool:
-  #         vmImage: 'ubuntu-latest'
-  #       steps:
-  #         - task: Docker@2
-  #           displayName: Push To ACR
-  #           inputs:
-  #             containerRegistry: 'tekken-acr'
-  #             repository: 'tekkenacr.azurecr.io'
-  #             command: 'buildAndPush'
-  #             Dockerfile: 'src/services/CharactersAPI/Dockerfile'
-  #             buildContext: ''
-  #             tags: |
-  #               $(Build.BuildId)
-  #               $(Build.SourceVersion)
+  - stage: Push to ACR
+    displayName: Build Stage
+    jobs:
+      - job: BuildAndPush
+        displayName: Build and Push Job
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps:
+          - task: Docker@2
+            displayName: Push To ACR
+            inputs:
+              containerRegistry: $(containerRegistry)
+              repository: $(imageRepository)
+              command: 'buildAndPush'
+              Dockerfile: $(dockerfilePath)
+              buildContext: ''
+              tags: |
+                $(Build.BuildId)
 
   - stage: K8SArtifacts
     displayName: K8s artifacts
@@ -98,7 +128,7 @@ stages:
           - task: CopyFiles@2
             displayName: Copy k8s manifests to artifact staging area
             inputs:
-              SourceFolder: '$(System.DefaultWorkingDirectory)/k8s/'
+              SourceFolder: '$(System.DefaultWorkingDirectory)/aks/'
               Contents: '**'
               TargetFolder: '$(Build.ArtifactStagingDirectory)'
               OverWrite: true
