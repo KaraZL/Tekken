@@ -37,7 +37,7 @@ stages:
           - bash: echo Contents in System Working Dir; ls $(System.DefaultWorkingDirectory)
           - bash: echo Contents in Artifact Staging; ls $(Build.ArtifactStagingDirectory)
           - bash: echo Contents in Pipeline Workspace; ls $(Pipeline.Workspace)
-          
+
           - task: PublishPipelineArtifact@1
             displayName: Publish terraform manifests to artifacts
             inputs:
@@ -75,6 +75,8 @@ stages:
           - bash: echo Contents in System Working Dir; ls $(System.DefaultWorkingDirectory)
           - bash: echo Contents in Artifact Staging; ls $(Build.ArtifactStagingDirectory)
           - bash: echo Contents in Pipeline Workspace; ls $(Pipeline.Workspace)
+          - bash: echo Contents in Pipeline Workspace; ls $(Agent.BuildDirectory)
+          
           - task: DownloadSecureFile@1
             displayName: "SSH public key"
             name: sshkey
@@ -89,21 +91,22 @@ stages:
               backendAzureRmResourceGroupName: 'terraform-storage-rg'
               backendAzureRmStorageAccountName: 'tekkenterraformstorage'
               backendAzureRmContainerName: 'tfstatefiles'
-              backendAzureRmKey: 'terraform-dev.tfstate'
+              backendAzureRmKey: 'terraform.tfstate'
               allowTelemetryCollection: false
           
           - task: TerraformCLI@0
             inputs:
               command: 'plan'
-              runAzLogin: true
+              environmentServiceName: 'terraform-aks-azurerm'
               commandOptions: '-var ssh_public_key=$(sshkey.secureFilePath) -out $(Pipeline.Workspace)/terraform-manifests-out/dev-$(Build.BuildId).out'
               allowTelemetryCollection: false
           
           - task: TerraformCLI@0
             inputs:
               command: 'apply'
+              environmentServiceName: 'terraform-aks-azurerm'
               commandOptions: '$(Pipeline.Workspace)/terraform-manifests-out/dev-$(Build.BuildId).out'
-              allowTelemetryCollection: true
+              allowTelemetryCollection: false
 
   # - stage: PushToACR
   #   displayName: Build Stage
