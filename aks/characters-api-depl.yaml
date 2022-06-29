@@ -17,7 +17,7 @@ spec:
         app: dotnet-apps #node_labels in terraform nodepools linux
       containers:
       - name: charactersapi
-        image: tekkenacr.azurecr.io/characters-api:latest
+        image: tekkenacr.azurecr.io/app1/characters-api:latest
         imagePullPolicy: Always
         resources:
           limits:
