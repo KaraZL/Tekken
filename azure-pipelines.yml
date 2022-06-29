@@ -68,9 +68,9 @@ stages:
     jobs:
       - job: TerraformInit
         steps:
-          - bash: echo Contents in System Working Dir; ls -R $(System.DefaultWorkingDirectory)
-          - bash: echo Contents in Artifact Staging; ls -R $(Build.ArtifactStagingDirectory)
-          - bash: echo Contents in Pipeline Workspace; ls -R $(Pipeline.Workspace)
+          - bash: echo Contents in System Working Dir; ls $(System.DefaultWorkingDirectory)
+          - bash: echo Contents in Artifact Staging; ls $(Build.ArtifactStagingDirectory)
+          - bash: echo Contents in Pipeline Workspace; ls $(Pipeline.Workspace)
           - task: DownloadSecureFile@1
             displayName: "SSH public key"
             name: sshkey
