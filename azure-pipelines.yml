@@ -38,12 +38,13 @@ stages:
           - bash: echo Contents in Artifact Staging; ls $(Build.ArtifactStagingDirectory)
           - bash: echo Contents in Pipeline Workspace; ls -R $(Pipeline.Workspace)
 
-          - task: PublishPipelineArtifact@1
-            displayName: Publish terraform manifests to artifacts
+          - task: CopyFiles@2
             inputs:
-              targetPath: '$(System.DefaultWorkingDirectory)/terraform/'
-              artifact: 'terraform-manifests-out'
-              publishLocation: 'pipeline'
+              SourceFolder: '$(System.DefaultWorkingDirectory)/terraform/'
+              Contents: '**'
+              TargetFolder: '$(Build.ArtifactStagingDirectory)/terraform/'
+              OverWrite: true
+
           - task: TerraformInstaller@0
             displayName: Install Terraform
             inputs:
@@ -53,7 +54,7 @@ stages:
             displayName: Init Terraform
             inputs:
               command: 'init'
-              workingDirectory: '$(System.DefaultWorkingDirectory)/terraform/'
+              workingDirectory: '$(Build.ArtifactStagingDirectory)/terraform/'
               backendType: 'azurerm'
               backendServiceArm: 'terraform-aks-azurerm'
               backendAzureRmResourceGroupName: 'terraform-storage-rg'
@@ -65,7 +66,7 @@ stages:
             displayName: Validate Terraform
             inputs:
               command: 'validate'
-              workingDirectory: '$(System.DefaultWorkingDirectory)/terraform/'
+              workingDirectory: '$(Build.ArtifactStagingDirectory)/terraform/'
               allowTelemetryCollection: true
 
   - stage: CreateAKSClusterAndACR
@@ -84,30 +85,30 @@ stages:
            
 
 
-          # - task: TerraformCLI@0
-          #   inputs:
-          #     command: 'init'
-          #     workingDirectory: '$(Pipeline.Workspace)/terraform-manifests-out'
-          #     backendType: 'azurerm'
-          #     backendServiceArm: 'terraform-aks-azurerm'
-          #     backendAzureRmResourceGroupName: 'terraform-storage-rg'
-          #     backendAzureRmStorageAccountName: 'tekkenterraformstorage'
-          #     backendAzureRmContainerName: 'tfstatefiles'
-          #     backendAzureRmKey: 'terraform-dev.tfstate'
-          #     allowTelemetryCollection: false
+          - task: TerraformCLI@0
+            inputs:
+              command: 'init'
+              workingDirectory: '$(Build.ArtifactStagingDirectory)/terraform'
+              backendType: 'azurerm'
+              backendServiceArm: 'terraform-aks-azurerm'
+              backendAzureRmResourceGroupName: 'terraform-storage-rg'
+              backendAzureRmStorageAccountName: 'tekkenterraformstorage'
+              backendAzureRmContainerName: 'tfstatefiles'
+              backendAzureRmKey: 'terraform-dev.tfstate'
+              allowTelemetryCollection: false
           
           - task: TerraformCLI@0
             inputs:
               command: 'plan'
               environmentServiceName: 'terraform-aks-azurerm'
-              commandOptions: '-var ssh_public_key=$(sshkey.secureFilePath) -out $(System.DefaultWorkingDirectory)/terraform/dev-$(Build.BuildId).out'
+              commandOptions: '-var ssh_public_key=$(sshkey.secureFilePath) -out $(Build.ArtifactStagingDirectory)/terraform-out/dev-$(Build.BuildId).out'
               allowTelemetryCollection: false
           
           - task: TerraformCLI@0
             inputs:
               command: 'apply'
               environmentServiceName: 'terraform-aks-azurerm'
-              commandOptions: '$(System.DefaultWorkingDirectory)/terraform/dev-$(Build.BuildId).out'
+              commandOptions: '$(Build.ArtifactStagingDirectory)/terraform-out/dev-$(Build.BuildId).out'
               allowTelemetryCollection: false
 
   # - stage: PushToACR
