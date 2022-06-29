@@ -13,10 +13,12 @@ spec:
       labels:
         app: charactersapi
     spec:
+      nodeSelector:
+        app: dotnet-apps #node_labels in terraform nodepools linux
       containers:
       - name: charactersapi
-        image: characters-api:latest
-        imagePullPolicy: IfNotPresent
+        image: tekkenacr.azurecr.io/characters-api:latest
+        imagePullPolicy: Always
         resources:
           limits:
             memory: "128Mi"
