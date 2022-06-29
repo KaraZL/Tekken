@@ -80,7 +80,7 @@ stages:
               command: 'plan'
               workingDirectory: '$(Build.ArtifactStagingDirectory)/terraform/'
               environmentServiceName: 'terraform-aks-azurerm'
-              commandOptions: '-var ssh_public_key=$(sshkey.secureFilePath) -out $(Build.ArtifactStagingDirectory)/terraform-out/dev-$(Build.BuildId).out'
+              commandOptions: '-var ssh_public_key=$(sshkey.secureFilePath) -out $(Build.ArtifactStagingDirectory)/terraform/dev-$(Build.BuildId).out'
               allowTelemetryCollection: false
           
           - task: TerraformCLI@0
@@ -88,7 +88,7 @@ stages:
               command: 'apply'
               workingDirectory: '$(Build.ArtifactStagingDirectory)/terraform/'
               environmentServiceName: 'terraform-aks-azurerm'
-              commandOptions: '$(Build.ArtifactStagingDirectory)/terraform-out/dev-$(Build.BuildId).out'
+              commandOptions: '$(Build.ArtifactStagingDirectory)/terraform/dev-$(Build.BuildId).out'
               allowTelemetryCollection: false
 
   # - stage: PushToACR
