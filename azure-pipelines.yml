@@ -36,7 +36,7 @@ stages:
         steps:
           - bash: echo Contents in System Working Dir; ls $(System.DefaultWorkingDirectory)
           - bash: echo Contents in Artifact Staging; ls $(Build.ArtifactStagingDirectory)
-          - bash: echo Contents in Pipeline Workspace; ls $(Pipeline.Workspace)
+          - bash: echo Contents in Pipeline Workspace; ls -R $(Pipeline.Workspace)
 
           - task: PublishPipelineArtifact@1
             displayName: Publish terraform manifests to artifacts
