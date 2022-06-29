@@ -11,85 +11,85 @@ pool:
   vmImage: ubuntu-latest
 
 stages:
-  # - stage: Test
-  #   jobs:
-  #     - job: UnitTests
-  #       continueOnError: false
-  #       steps:
-  #         - task: DotNetCoreCLI@2
-  #           inputs:
-  #             command: 'test'
-  #             projects: '*tests/*Unit/*.csproj'
+  - stage: Test
+    jobs:
+      - job: UnitTests
+        continueOnError: false
+        steps:
+          - task: DotNetCoreCLI@2
+            inputs:
+              command: 'test'
+              projects: '*tests/*Unit/*.csproj'
 
-  #     - job: IntegrationTests
-  #       continueOnError: false
-  #       steps:
-  #         - task: DotNetCoreCLI@2
-  #           inputs:
-  #             command: 'test'
-  #             projects: '*tests/*Integration/*.csproj'
+      - job: IntegrationTests
+        continueOnError: false
+        steps:
+          - task: DotNetCoreCLI@2
+            inputs:
+              command: 'test'
+              projects: '*tests/*Integration/*.csproj'
 
-  # - stage: TerraformValidate
-  #   jobs:
-  #     - job: TerraformValidate
-  #       continueOnError: false
-  #       steps:
-  #         - bash: echo Contents in System Working Dir; ls $(System.DefaultWorkingDirectory)
-  #         - bash: echo Contents in Artifact Staging; ls $(Build.ArtifactStagingDirectory)
-  #         - bash: echo Contents in Pipeline Workspace; ls -R $(Pipeline.Workspace)
+  - stage: TerraformValidate
+    jobs:
+      - job: TerraformValidate
+        continueOnError: false
+        steps:
+          - bash: echo Contents in System Working Dir; ls $(System.DefaultWorkingDirectory)
+          - bash: echo Contents in Artifact Staging; ls $(Build.ArtifactStagingDirectory)
+          - bash: echo Contents in Pipeline Workspace; ls -R $(Pipeline.Workspace)
 
-  #         - task: CopyFiles@2
-  #           inputs:
-  #             SourceFolder: '$(System.DefaultWorkingDirectory)/terraform/'
-  #             Contents: '**'
-  #             TargetFolder: '$(Build.ArtifactStagingDirectory)/terraform/'
-  #             OverWrite: true
+          - task: CopyFiles@2
+            inputs:
+              SourceFolder: '$(System.DefaultWorkingDirectory)/terraform/'
+              Contents: '**'
+              TargetFolder: '$(Build.ArtifactStagingDirectory)/terraform/'
+              OverWrite: true
 
-  #         - task: TerraformInstaller@0
-  #           displayName: Install Terraform
-  #           inputs:
-  #             terraformVersion: 'latest'
+          - task: TerraformInstaller@0
+            displayName: Install Terraform
+            inputs:
+              terraformVersion: 'latest'
           
-  #         - task: TerraformCLI@0
-  #           displayName: Init Terraform
-  #           inputs:
-  #             command: 'init'
-  #             workingDirectory: '$(Build.ArtifactStagingDirectory)/terraform/'
-  #             backendType: 'azurerm'
-  #             backendServiceArm: 'terraform-aks-azurerm'
-  #             backendAzureRmResourceGroupName: 'terraform-storage-rg'
-  #             backendAzureRmStorageAccountName: 'tekkenterraformstorage'
-  #             backendAzureRmContainerName: 'tfstatefiles'
-  #             backendAzureRmKey: 'terraform.tfstate'
-  #             allowTelemetryCollection: true
-  #         - task: TerraformCLI@0
-  #           displayName: Validate Terraform
-  #           inputs:
-  #             command: 'validate'
-  #             workingDirectory: '$(Build.ArtifactStagingDirectory)/terraform/'
-  #             allowTelemetryCollection: true
+          - task: TerraformCLI@0
+            displayName: Init Terraform
+            inputs:
+              command: 'init'
+              workingDirectory: '$(Build.ArtifactStagingDirectory)/terraform/'
+              backendType: 'azurerm'
+              backendServiceArm: 'terraform-aks-azurerm'
+              backendAzureRmResourceGroupName: 'terraform-storage-rg'
+              backendAzureRmStorageAccountName: 'tekkenterraformstorage'
+              backendAzureRmContainerName: 'tfstatefiles'
+              backendAzureRmKey: 'terraform.tfstate'
+              allowTelemetryCollection: true
+          - task: TerraformCLI@0
+            displayName: Validate Terraform
+            inputs:
+              command: 'validate'
+              workingDirectory: '$(Build.ArtifactStagingDirectory)/terraform/'
+              allowTelemetryCollection: true
           
-  #         - task: DownloadSecureFile@1
-  #           displayName: "SSH public key"
-  #           name: sshkey
-  #           inputs:
-  #             secureFile: 'azure-aks.pub'
+          - task: DownloadSecureFile@1
+            displayName: "SSH public key"
+            name: sshkey
+            inputs:
+              secureFile: 'azure-aks.pub'
           
-  #         - task: TerraformCLI@0
-  #           inputs:
-  #             command: 'plan'
-  #             workingDirectory: '$(Build.ArtifactStagingDirectory)/terraform/'
-  #             environmentServiceName: 'terraform-aks-azurerm'
-  #             commandOptions: '-var ssh_public_key=$(sshkey.secureFilePath) -out $(Build.ArtifactStagingDirectory)/terraform/dev-$(Build.BuildId).out'
-  #             allowTelemetryCollection: false
+          - task: TerraformCLI@0
+            inputs:
+              command: 'plan'
+              workingDirectory: '$(Build.ArtifactStagingDirectory)/terraform/'
+              environmentServiceName: 'terraform-aks-azurerm'
+              commandOptions: '-var ssh_public_key=$(sshkey.secureFilePath) -out $(Build.ArtifactStagingDirectory)/terraform/dev-$(Build.BuildId).out'
+              allowTelemetryCollection: false
           
-  #         - task: TerraformCLI@0
-  #           inputs:
-  #             command: 'apply'
-  #             workingDirectory: '$(Build.ArtifactStagingDirectory)/terraform/'
-  #             environmentServiceName: 'terraform-aks-azurerm'
-  #             commandOptions: '$(Build.ArtifactStagingDirectory)/terraform/dev-$(Build.BuildId).out'
-  #             allowTelemetryCollection: false
+          - task: TerraformCLI@0
+            inputs:
+              command: 'apply'
+              workingDirectory: '$(Build.ArtifactStagingDirectory)/terraform/'
+              environmentServiceName: 'terraform-aks-azurerm'
+              commandOptions: '$(Build.ArtifactStagingDirectory)/terraform/dev-$(Build.BuildId).out'
+              allowTelemetryCollection: false
           
   - stage: PushToACR
     displayName: Build Stage
@@ -111,28 +111,26 @@ stages:
                 $(Build.BuildId)
 
 
-  # - stage: K8SArtifacts
-  #   displayName: K8s artifacts
-  #   jobs:
-  #     - job: Upload
-  #       steps:
-  #         - bash: echo Contents in System Working Dir; ls -R $(System.DefaultWorkingDirectory)
-  #         - bash: echo Contents in Artifact Staging; ls -R $(Build.ArtifactStagingDirectory)
-  #         - task: CopyFiles@2
-  #           displayName: Copy k8s manifests to artifact staging area
-  #           inputs:
-  #             SourceFolder: '$(System.DefaultWorkingDirectory)/aks/'
-  #             Contents: '**'
-  #             TargetFolder: '$(Build.ArtifactStagingDirectory)'
-  #             OverWrite: true
-  #         - task: PublishPipelineArtifact@1
-  #           inputs:
-  #             targetPath: '$(Build.ArtifactStagingDirectory)'
-  #             artifact: 'k8s-manifests'
-  #             publishLocation: 'pipeline'
+  - stage: K8SArtifacts
+    displayName: K8s artifacts
+    jobs:
+      - job: Upload
+        steps:
+          - task: CopyFiles@2
+            displayName: Copy k8s manifests to artifact staging area
+            inputs:
+              SourceFolder: '$(System.DefaultWorkingDirectory)/aks/'
+              Contents: '**'
+              TargetFolder: '$(Build.ArtifactStagingDirectory)/aks/'
+              OverWrite: true
+          - task: PublishPipelineArtifact@1
+            inputs:
+              targetPath: '$(Build.ArtifactStagingDirectory)/aks/'
+              artifact: 'k8s-manifests'
+              publishLocation: 'pipeline'
               
-  #         - bash: echo Contents in System Working Dir; ls -R $(System.DefaultWorkingDirectory)
-  #         - bash: echo Contents in Artifact Staging; ls -R $(Build.ArtifactStagingDirectory)
+          - bash: echo Contents in System Working Dir; ls -R $(System.DefaultWorkingDirectory)
+          - bash: echo Contents in Artifact Staging; ls -R $(Build.ArtifactStagingDirectory)
 
 
 
