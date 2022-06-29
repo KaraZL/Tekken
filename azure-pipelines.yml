@@ -3,7 +3,7 @@ trigger:
 
 variables:
   # Container registry service connection established during pipeline creation
-  imageRepository: 'tekkenacr.azurecr.io/characters-api'
+  imageRepository: 'app1/characters-api'
   containerRegistry: 'tekken-azure-container-registry'
   dockerfilePath: 'src/services/CharactersAPI/Dockerfile'
 
