@@ -38,12 +38,6 @@ stages:
           - bash: echo Contents in Artifact Staging; ls $(Build.ArtifactStagingDirectory)
           - bash: echo Contents in Pipeline Workspace; ls $(Pipeline.Workspace)
 
-          - task: PublishBuildArtifacts@1
-            inputs:
-              PathtoPublish: '$(Pipeline.Workspace)'
-              ArtifactName: 'terraform-manifests-out'
-              publishLocation: 'Container'
-
           - task: PublishPipelineArtifact@1
             displayName: Publish terraform manifests to artifacts
             inputs:
