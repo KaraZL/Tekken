@@ -4,7 +4,7 @@ trigger:
 variables:
   # Container registry service connection established during pipeline creation
   imageRepository: 'tekkenacr.azurecr.io/characters-api'
-  containerRegistry: 'tekkenacr.azurecr.io'
+  containerRegistry: 'tekkenacr'
   dockerfilePath: '$src/services/CharactersAPI/Dockerfile'
 
 pool:
@@ -98,47 +98,47 @@ stages:
               commandOptions: '$(Pipeline.Workspace)/terraform-manifests-out/dev-$(Build.BuildId).out'
               allowTelemetryCollection: true
 
-  - stage: PushToACR
-    displayName: Build Stage
-    jobs:
-      - job: BuildAndPush
-        displayName: Build and Push Job
-        pool:
-          vmImage: 'ubuntu-latest'
-        steps:
-          - task: Docker@2
-            displayName: Push To ACR
-            inputs:
-              containerRegistry: $(containerRegistry)
-              repository: $(imageRepository)
-              command: 'buildAndPush'
-              Dockerfile: $(dockerfilePath)
-              buildContext: ''
-              tags: |
-                $(Build.BuildId)
+  # - stage: PushToACR
+  #   displayName: Build Stage
+  #   jobs:
+  #     - job: BuildAndPush
+  #       displayName: Build and Push Job
+  #       pool:
+  #         vmImage: 'ubuntu-latest'
+  #       steps:
+  #         - task: Docker@2
+  #           displayName: Push To ACR
+  #           inputs:
+  #             containerRegistry: $(containerRegistry)
+  #             repository: $(imageRepository)
+  #             command: 'buildAndPush'
+  #             Dockerfile: $(dockerfilePath)
+  #             buildContext: ''
+  #             tags: |
+  #               $(Build.BuildId)
 
-  - stage: K8SArtifacts
-    displayName: K8s artifacts
-    jobs:
-      - job: Upload
-        steps:
-          - bash: echo Contents in System Working Dir; ls -R $(System.DefaultWorkingDirectory)
-          - bash: echo Contents in Artifact Staging; ls -R $(Build.ArtifactStagingDirectory)
-          - task: CopyFiles@2
-            displayName: Copy k8s manifests to artifact staging area
-            inputs:
-              SourceFolder: '$(System.DefaultWorkingDirectory)/aks/'
-              Contents: '**'
-              TargetFolder: '$(Build.ArtifactStagingDirectory)'
-              OverWrite: true
-          - task: PublishPipelineArtifact@1
-            inputs:
-              targetPath: '$(Build.ArtifactStagingDirectory)'
-              artifact: 'k8s-manifests'
-              publishLocation: 'pipeline'
+  # - stage: K8SArtifacts
+  #   displayName: K8s artifacts
+  #   jobs:
+  #     - job: Upload
+  #       steps:
+  #         - bash: echo Contents in System Working Dir; ls -R $(System.DefaultWorkingDirectory)
+  #         - bash: echo Contents in Artifact Staging; ls -R $(Build.ArtifactStagingDirectory)
+  #         - task: CopyFiles@2
+  #           displayName: Copy k8s manifests to artifact staging area
+  #           inputs:
+  #             SourceFolder: '$(System.DefaultWorkingDirectory)/aks/'
+  #             Contents: '**'
+  #             TargetFolder: '$(Build.ArtifactStagingDirectory)'
+  #             OverWrite: true
+  #         - task: PublishPipelineArtifact@1
+  #           inputs:
+  #             targetPath: '$(Build.ArtifactStagingDirectory)'
+  #             artifact: 'k8s-manifests'
+  #             publishLocation: 'pipeline'
               
-          - bash: echo Contents in System Working Dir; ls -R $(System.DefaultWorkingDirectory)
-          - bash: echo Contents in Artifact Staging; ls -R $(Build.ArtifactStagingDirectory)
+  #         - bash: echo Contents in System Working Dir; ls -R $(System.DefaultWorkingDirectory)
+  #         - bash: echo Contents in Artifact Staging; ls -R $(Build.ArtifactStagingDirectory)
 
 
 
