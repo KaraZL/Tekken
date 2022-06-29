@@ -38,6 +38,12 @@ stages:
           - bash: echo Contents in Artifact Staging; ls $(Build.ArtifactStagingDirectory)
           - bash: echo Contents in Pipeline Workspace; ls $(Pipeline.Workspace)
 
+          - task: PublishBuildArtifacts@1
+            inputs:
+              PathtoPublish: '$(Pipeline.Workspace)'
+              ArtifactName: 'terraform-manifests-out'
+              publishLocation: 'Container'
+
           - task: PublishPipelineArtifact@1
             displayName: Publish terraform manifests to artifacts
             inputs:
@@ -82,16 +88,17 @@ stages:
             name: sshkey
             inputs:
               secureFile: 'azure-aks.pub'
+
           - task: TerraformCLI@0
             inputs:
               command: 'init'
-              workingDirectory: '$(Pipeline.Workspace)/terraform-manifests-out'
+              workingDirectory: '$(Build.ArtifactStagingDirectory)/terraform-manifests-out'
               backendType: 'azurerm'
               backendServiceArm: 'terraform-aks-azurerm'
               backendAzureRmResourceGroupName: 'terraform-storage-rg'
               backendAzureRmStorageAccountName: 'tekkenterraformstorage'
               backendAzureRmContainerName: 'tfstatefiles'
-              backendAzureRmKey: 'terraform.tfstate'
+              backendAzureRmKey: 'terraform-dev.tfstate'
               allowTelemetryCollection: false
           
           - task: TerraformCLI@0
