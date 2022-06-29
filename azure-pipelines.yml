@@ -78,6 +78,7 @@ stages:
           - task: TerraformCLI@0
             inputs:
               command: 'plan'
+              workingDirectory: '$(Build.ArtifactStagingDirectory)/terraform/'
               environmentServiceName: 'terraform-aks-azurerm'
               commandOptions: '-var ssh_public_key=$(sshkey.secureFilePath) -out $(Build.ArtifactStagingDirectory)/terraform-out/dev-$(Build.BuildId).out'
               allowTelemetryCollection: false
@@ -85,6 +86,7 @@ stages:
           - task: TerraformCLI@0
             inputs:
               command: 'apply'
+              workingDirectory: '$(Build.ArtifactStagingDirectory)/terraform/'
               environmentServiceName: 'terraform-aks-azurerm'
               commandOptions: '$(Build.ArtifactStagingDirectory)/terraform-out/dev-$(Build.BuildId).out'
               allowTelemetryCollection: false
