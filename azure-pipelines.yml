@@ -4,7 +4,7 @@ trigger:
 variables:
   # Container registry service connection established during pipeline creation
   imageRepository: 'tekkenacr.azurecr.io/characters-api'
-  containerRegistry: 'tekkenacr'
+  containerRegistry: 'tekken-azure-container-registry'
   dockerfilePath: '$src/services/CharactersAPI/Dockerfile'
 
 pool:
@@ -90,25 +90,26 @@ stages:
               environmentServiceName: 'terraform-aks-azurerm'
               commandOptions: '$(Build.ArtifactStagingDirectory)/terraform/dev-$(Build.BuildId).out'
               allowTelemetryCollection: false
+          
+  - stage: PushToACR
+    displayName: Build Stage
+    jobs:
+      - job: BuildAndPush
+        displayName: Build and Push Job
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps:
+          - task: Docker@2
+            displayName: Push To ACR
+            inputs:
+              containerRegistry: $(containerRegistry)
+              repository: $(imageRepository)
+              command: 'buildAndPush'
+              Dockerfile: $(dockerfilePath)
+              buildContext: ''
+              tags: |
+                $(Build.BuildId)
 
-  # - stage: PushToACR
-  #   displayName: Build Stage
-  #   jobs:
-  #     - job: BuildAndPush
-  #       displayName: Build and Push Job
-  #       pool:
-  #         vmImage: 'ubuntu-latest'
-  #       steps:
-  #         - task: Docker@2
-  #           displayName: Push To ACR
-  #           inputs:
-  #             containerRegistry: $(containerRegistry)
-  #             repository: $(imageRepository)
-  #             command: 'buildAndPush'
-  #             Dockerfile: $(dockerfilePath)
-  #             buildContext: ''
-  #             tags: |
-  #               $(Build.BuildId)
 
   # - stage: K8SArtifacts
   #   displayName: K8s artifacts
