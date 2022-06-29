@@ -68,34 +68,12 @@ stages:
               command: 'validate'
               workingDirectory: '$(Build.ArtifactStagingDirectory)/terraform/'
               allowTelemetryCollection: true
-
-  - stage: CreateAKSClusterAndACR
-    jobs:
-      - job: TerraformInit
-        steps:
-          - bash: echo Contents in System Working Dir; ls $(System.DefaultWorkingDirectory)
-          - bash: echo Contents in Artifact Staging; ls $(Build.ArtifactStagingDirectory)
-          - bash: echo Contents in Pipeline Workspace; ls -R $(Pipeline.Workspace)
           
           - task: DownloadSecureFile@1
             displayName: "SSH public key"
             name: sshkey
             inputs:
               secureFile: 'azure-aks.pub'
-           
-
-
-          - task: TerraformCLI@0
-            inputs:
-              command: 'init'
-              workingDirectory: '$(Build.ArtifactStagingDirectory)/terraform'
-              backendType: 'azurerm'
-              backendServiceArm: 'terraform-aks-azurerm'
-              backendAzureRmResourceGroupName: 'terraform-storage-rg'
-              backendAzureRmStorageAccountName: 'tekkenterraformstorage'
-              backendAzureRmContainerName: 'tfstatefiles'
-              backendAzureRmKey: 'terraform-dev.tfstate'
-              allowTelemetryCollection: false
           
           - task: TerraformCLI@0
             inputs:
