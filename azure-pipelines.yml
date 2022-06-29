@@ -74,19 +74,20 @@ stages:
         steps:
           - bash: echo Contents in System Working Dir; ls $(System.DefaultWorkingDirectory)
           - bash: echo Contents in Artifact Staging; ls $(Build.ArtifactStagingDirectory)
-          - bash: echo Contents in Pipeline Workspace; ls $(Pipeline.Workspace)
-          - bash: echo Contents in Pipeline Workspace; ls $(Agent.BuildDirectory)
+          - bash: echo Contents in Pipeline Workspace; ls -R $(Pipeline.Workspace)
           
           - task: DownloadSecureFile@1
             displayName: "SSH public key"
             name: sshkey
             inputs:
               secureFile: 'azure-aks.pub'
+           
+
 
           - task: TerraformCLI@0
             inputs:
               command: 'init'
-              workingDirectory: '$(Build.ArtifactStagingDirectory)/terraform-manifests-out'
+              workingDirectory: '$(Pipeline.Workspace)/terraform-manifests-out'
               backendType: 'azurerm'
               backendServiceArm: 'terraform-aks-azurerm'
               backendAzureRmResourceGroupName: 'terraform-storage-rg'
