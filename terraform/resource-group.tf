@@ -1,5 +1,5 @@
 resource "azurerm_resource_group" "tekken-rg" {
-  name     = "tekken-resource-group"
-  location = "West Europe"
+  name     = "${var.resource_group_name}-${var.environment}"
+  location = var.location
 }
 

@@ -13,6 +13,8 @@ spec:
       labels:
         app: charactersapi
     spec:
+      nodeSelector:
+        app: dotnet-apps #node_labels in terraform nodepools linux
       containers:
       - name: charactersapi
         image: characters-api:latest
