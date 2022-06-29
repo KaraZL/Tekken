@@ -5,7 +5,7 @@ variables:
   # Container registry service connection established during pipeline creation
   imageRepository: 'tekkenacr.azurecr.io/characters-api'
   containerRegistry: 'tekken-azure-container-registry'
-  dockerfilePath: '$src/services/CharactersAPI/Dockerfile'
+  dockerfilePath: 'src/services/CharactersAPI/Dockerfile'
 
 pool:
   vmImage: ubuntu-latest
@@ -29,67 +29,67 @@ stages:
   #             command: 'test'
   #             projects: '*tests/*Integration/*.csproj'
 
-  - stage: TerraformValidate
-    jobs:
-      - job: TerraformValidate
-        continueOnError: false
-        steps:
-          - bash: echo Contents in System Working Dir; ls $(System.DefaultWorkingDirectory)
-          - bash: echo Contents in Artifact Staging; ls $(Build.ArtifactStagingDirectory)
-          - bash: echo Contents in Pipeline Workspace; ls -R $(Pipeline.Workspace)
+  # - stage: TerraformValidate
+  #   jobs:
+  #     - job: TerraformValidate
+  #       continueOnError: false
+  #       steps:
+  #         - bash: echo Contents in System Working Dir; ls $(System.DefaultWorkingDirectory)
+  #         - bash: echo Contents in Artifact Staging; ls $(Build.ArtifactStagingDirectory)
+  #         - bash: echo Contents in Pipeline Workspace; ls -R $(Pipeline.Workspace)
 
-          - task: CopyFiles@2
-            inputs:
-              SourceFolder: '$(System.DefaultWorkingDirectory)/terraform/'
-              Contents: '**'
-              TargetFolder: '$(Build.ArtifactStagingDirectory)/terraform/'
-              OverWrite: true
+  #         - task: CopyFiles@2
+  #           inputs:
+  #             SourceFolder: '$(System.DefaultWorkingDirectory)/terraform/'
+  #             Contents: '**'
+  #             TargetFolder: '$(Build.ArtifactStagingDirectory)/terraform/'
+  #             OverWrite: true
 
-          - task: TerraformInstaller@0
-            displayName: Install Terraform
-            inputs:
-              terraformVersion: 'latest'
+  #         - task: TerraformInstaller@0
+  #           displayName: Install Terraform
+  #           inputs:
+  #             terraformVersion: 'latest'
           
-          - task: TerraformCLI@0
-            displayName: Init Terraform
-            inputs:
-              command: 'init'
-              workingDirectory: '$(Build.ArtifactStagingDirectory)/terraform/'
-              backendType: 'azurerm'
-              backendServiceArm: 'terraform-aks-azurerm'
-              backendAzureRmResourceGroupName: 'terraform-storage-rg'
-              backendAzureRmStorageAccountName: 'tekkenterraformstorage'
-              backendAzureRmContainerName: 'tfstatefiles'
-              backendAzureRmKey: 'terraform.tfstate'
-              allowTelemetryCollection: true
-          - task: TerraformCLI@0
-            displayName: Validate Terraform
-            inputs:
-              command: 'validate'
-              workingDirectory: '$(Build.ArtifactStagingDirectory)/terraform/'
-              allowTelemetryCollection: true
+  #         - task: TerraformCLI@0
+  #           displayName: Init Terraform
+  #           inputs:
+  #             command: 'init'
+  #             workingDirectory: '$(Build.ArtifactStagingDirectory)/terraform/'
+  #             backendType: 'azurerm'
+  #             backendServiceArm: 'terraform-aks-azurerm'
+  #             backendAzureRmResourceGroupName: 'terraform-storage-rg'
+  #             backendAzureRmStorageAccountName: 'tekkenterraformstorage'
+  #             backendAzureRmContainerName: 'tfstatefiles'
+  #             backendAzureRmKey: 'terraform.tfstate'
+  #             allowTelemetryCollection: true
+  #         - task: TerraformCLI@0
+  #           displayName: Validate Terraform
+  #           inputs:
+  #             command: 'validate'
+  #             workingDirectory: '$(Build.ArtifactStagingDirectory)/terraform/'
+  #             allowTelemetryCollection: true
           
-          - task: DownloadSecureFile@1
-            displayName: "SSH public key"
-            name: sshkey
-            inputs:
-              secureFile: 'azure-aks.pub'
+  #         - task: DownloadSecureFile@1
+  #           displayName: "SSH public key"
+  #           name: sshkey
+  #           inputs:
+  #             secureFile: 'azure-aks.pub'
           
-          - task: TerraformCLI@0
-            inputs:
-              command: 'plan'
-              workingDirectory: '$(Build.ArtifactStagingDirectory)/terraform/'
-              environmentServiceName: 'terraform-aks-azurerm'
-              commandOptions: '-var ssh_public_key=$(sshkey.secureFilePath) -out $(Build.ArtifactStagingDirectory)/terraform/dev-$(Build.BuildId).out'
-              allowTelemetryCollection: false
+  #         - task: TerraformCLI@0
+  #           inputs:
+  #             command: 'plan'
+  #             workingDirectory: '$(Build.ArtifactStagingDirectory)/terraform/'
+  #             environmentServiceName: 'terraform-aks-azurerm'
+  #             commandOptions: '-var ssh_public_key=$(sshkey.secureFilePath) -out $(Build.ArtifactStagingDirectory)/terraform/dev-$(Build.BuildId).out'
+  #             allowTelemetryCollection: false
           
-          - task: TerraformCLI@0
-            inputs:
-              command: 'apply'
-              workingDirectory: '$(Build.ArtifactStagingDirectory)/terraform/'
-              environmentServiceName: 'terraform-aks-azurerm'
-              commandOptions: '$(Build.ArtifactStagingDirectory)/terraform/dev-$(Build.BuildId).out'
-              allowTelemetryCollection: false
+  #         - task: TerraformCLI@0
+  #           inputs:
+  #             command: 'apply'
+  #             workingDirectory: '$(Build.ArtifactStagingDirectory)/terraform/'
+  #             environmentServiceName: 'terraform-aks-azurerm'
+  #             commandOptions: '$(Build.ArtifactStagingDirectory)/terraform/dev-$(Build.BuildId).out'
+  #             allowTelemetryCollection: false
           
   - stage: PushToACR
     displayName: Build Stage
