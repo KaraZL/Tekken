@@ -3,7 +3,6 @@ trigger:
 
 variables:
   # Container registry service connection established during pipeline creation
-  dockerRegistryServiceConnection: '545a7676-b6b2-4370-a270-0ba132beb479'
   imageRepository: 'tekkenacr.azurecr.io/characters-api'
   containerRegistry: 'tekkenacr.azurecr.io'
   dockerfilePath: '$src/services/CharactersAPI/Dockerfile'
@@ -30,7 +29,7 @@ stages:
   #             command: 'test'
   #             projects: '*tests/*Integration/*.csproj'
 
-  - stage: Terraform Validate
+  - stage: TerraformValidate
     jobs:
       - job: TerraformValidate
         continueOnError: false
@@ -65,7 +64,7 @@ stages:
               workingDirectory: '$(System.DefaultWorkingDirectory)/terraform/'
               allowTelemetryCollection: true
 
-  - stage: Create AKS Cluster and ACR
+  - stage: CreateAKSClusterAndACR
     jobs:
       - job: TerraformInit
         steps:
@@ -99,7 +98,7 @@ stages:
               commandOptions: '$(Pipeline.Workspace)/terraform-manifests-out/dev-$(Build.BuildId).out'
               allowTelemetryCollection: true
 
-  - stage: Push to ACR
+  - stage: PushToACR
     displayName: Build Stage
     jobs:
       - job: BuildAndPush
