@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: characters-mssql-deployment
+  labels:
+    app: characters-mssql
+spec:
+  selector:
+    matchLabels:
+      app: characters-mssql
+  
+  template:
+    metadata:
+      labels:
+        app: characters-mssql
+    
+    spec:
+      nodeSelector:
+        app: dotnet-apps #node_labels in terraform nodepools linux
+      containers:
+      - name: characters-mssql
+        image: mcr.microsoft.com/mssql/server:2019-CU16-ubuntu-20.04
+        imagePullPolicy: IfNotPresent
+        resources:
+          limits:
+            cpu: "200m"
+            memory: "1Gi"
+        ports:
+        - containerPort: 1433
+        env:
+          - name: ACCEPT_EULA
+            value: "Y"
+          - name: SA_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: characters-mssql-secret
+                key: mssql-password
+          - name: MSSQL_PID
+            valueFrom:
+              secretKeyRef:
+                name: characters-mssql-secret
+                key: mssql-pid
+        
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: characters-mssql-clusterip
+spec:
+  type: ClusterIP
+  selector:
+    app: characters-mssql
+  ports:
+  - port: 1433
+    targetPort: 1433
+    protocol: TCP
+          

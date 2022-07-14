@@ -1,0 +1,49 @@
+#host
+##127.0.0.1 kubernetes.docker.internal
+#127.0.0.1 tekken.k8s.io
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: tekken-ingress
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+  labels:
+    name: tekken-ingress
+spec:
+  rules:
+  - host: tekken.k8s.io
+    http:
+      paths:
+      - pathType: Prefix
+        path: "/"
+        backend:
+          service:
+            name: characters-api-clusterip
+            port:
+              number: 80
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: dashboard-ingress
+  namespace: kubernetes-dashboard
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+  labels:
+    name: dashboard-ingress
+spec:
+  rules:
+  - host: tekken.k8s.io
+    http:
+      paths:
+      - pathType: Prefix
+        path: "/dashboard"
+        backend:
+          service:
+            name: kubernetes-dashboard
+            port: 
+              number: 80
+
+          

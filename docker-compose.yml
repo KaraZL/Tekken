@@ -1,0 +1,12 @@
+version: '3.4'
+
+services:
+  mssql:
+    image: mcr.microsoft.com/mssql/server:2019-CU16-ubuntu-20.04
+
+#custom
+  charactersapi:
+    image: ${DOCKER_REGISTRY-}characters-api:1.0
+    build:
+      context: .
+      dockerfile: src/services/CharactersAPI/Dockerfile

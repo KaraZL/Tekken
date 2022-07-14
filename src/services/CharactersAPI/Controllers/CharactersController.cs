@@ -3,12 +3,14 @@ using CharactersAPI.Dtos;
 using CharactersAPI.Models;
 using CharactersAPI.Repository;
 using CharactersAPI.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CharactersAPI.Controllers
 {
     [Route("api/[controller]")]
+    [Authorize] //Secure API
     [ApiController]
     public class CharactersController : ControllerBase
     {

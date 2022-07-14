@@ -1,22 +1,37 @@
-# Starter pipeline
-# Start with a minimal pipeline that you can customize to build and deploy your code.
-# Add steps that build, run tests, deploy, and more:
-# https://aka.ms/yaml
-
 trigger:
-- main
+- testk8s
 
 pool:
   vmImage: ubuntu-latest
 
 stages:
-  - stage: Tests
+  - stage: DeployToAKS
     jobs:
-      - job: UnitTests
-        continueOnError: false
+      - job: PushACR
         steps:
-          - task: DotNetCoreCLI@2
+          - task: Docker@2
             inputs:
-              command: 'test'
-              projects: '*tests/*Tests.Unit/*.csproj'
-              testRunTitle: 'Unit Tests'
+              containerRegistry: 'tekken-acr-service-connection'
+              repository: 'app1/characters-api'
+              command: 'buildAndPush'
+              Dockerfile: '$(Build.SourcesDirectory)/src/services/CharactersAPI/Dockerfile'
+              buildContext: ''
+              tags: $(Build.BuildId)
+            
+          
+          - publish: aks
+            artifact: aks
+          
+          - task: Kubernetes@1
+            inputs:
+              connectionType: 'Kubernetes Service Connection'
+              kubernetesServiceEndpoint: 'dev-aks-service-connection'
+              namespace: 'dev'
+              command: 'apply'
+              arguments: '-f aks/characters-mssql-depl.yaml -f aks/characters-mssql-secret.yaml'
+              secretType: 'dockerRegistry'
+              containerRegistryType: 'Azure Container Registry'
+
+          
+
+
